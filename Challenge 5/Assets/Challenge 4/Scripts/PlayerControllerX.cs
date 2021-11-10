@@ -9,8 +9,11 @@ public class PlayerControllerX : MonoBehaviour
     private GameObject focalPoint;
 
     public bool hasPowerup;
+    public bool turboActive;
+    private float turboSpeed = 5;
     public GameObject powerupIndicator;
     public int powerUpDuration = 5;
+    public ParticleSystem smokeParticle;
 
     private float normalStrength = 10; // how hard to hit enemy without powerup
     private float powerupStrength = 25; // how hard to hit enemy with powerup
@@ -29,6 +32,19 @@ public class PlayerControllerX : MonoBehaviour
 
         // Set powerup indicator position to beneath player
         powerupIndicator.transform.position = transform.position + new Vector3(0, -0.6f, 0);
+        
+        //give player a speed boost
+        if (Input.GetKeyDown(KeyCode.Space))
+        {
+            playerRb.AddForce(focalPoint.transform.forward * turboSpeed, ForceMode.Impulse);
+            turboActive = true;
+            smokeParticle.Play();
+        }
+        else if (Input.GetKeyUp(KeyCode.Space))
+        {
+            turboActive = false;
+            smokeParticle.Stop();
+        }
 
     }
 
@@ -40,6 +56,7 @@ public class PlayerControllerX : MonoBehaviour
             Destroy(other.gameObject);
             hasPowerup = true;
             powerupIndicator.SetActive(true);
+            StartCoroutine(PowerupCooldown());
         }
     }
 
@@ -57,7 +74,7 @@ public class PlayerControllerX : MonoBehaviour
         if (other.gameObject.CompareTag("Enemy"))
         {
             Rigidbody enemyRigidbody = other.gameObject.GetComponent<Rigidbody>();
-            Vector3 awayFromPlayer =  transform.position - other.gameObject.transform.position; 
+            Vector3 awayFromPlayer =  other.gameObject.transform.position - transform.position; 
            
             if (hasPowerup) // if have powerup hit enemy with powerup force
             {
